@@ -9,13 +9,15 @@
 #define INIT_BALANCE 1000
 #define NUM_TRANS 400
 
-int balance = INIT_BALANCE;
+int balance = INIT_BALANCE; // CURRENT BALANCE
 
-int credits = 0;
-int debits = 0;
+int credits = 0; // MONEY TRANSFERRED TO USER
+int debits = 0; // MONEY REMOVED FROM USER
 
+// MUTUAL EXCLUSION DECLARATIONS
 pthread_mutex_t balance_lock, credits_lock, debits_lock;
 
+// TRANSACTION FUNCTIONS
 void * transactions(void * args) {
   int v;
 	
@@ -23,25 +25,35 @@ void * transactions(void * args) {
     v = (int) random() % NUM_TRANS;
   
     if (random() % 2) {
-      // CREDIT
+      // Crediting to user
       
+      // pthread_mutex_lock is used for locking certains sections of code to provent other threads from acessing it simultaneously
+      
+      // locking balance 
       pthread_mutex_lock(&balance_lock);
       balance = balance + v;
       pthread_mutex_unlock(&balance_lock);
+      // unlocking balance
 
+      // locking credits
       pthread_mutex_lock(&credits_lock);
       credits = credits + v;
       pthread_mutex_unlock(&credits_lock);
+      // unlocking credits
     } else {
-      // DEBIT 
+      // Debiting from user
 
+      // locking balance
       pthread_mutex_lock(&balance_lock);
       balance = balance - v;
       pthread_mutex_unlock(&balance_lock);
-    
+      // unlocking balance
+
+      // locking debits
       pthread_mutex_lock(&debits_lock);
       debits = debits + v;
       pthread_mutex_unlock(&debits_lock);
+      // unlocking debits
     }
   }
 }
